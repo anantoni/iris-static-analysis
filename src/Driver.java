@@ -65,6 +65,8 @@ public class Driver {
             if (fileEntry.isDirectory())
                 System.out.println("Omitting directory " + fileEntry.getPath());
 
+            else if (fileEntry.getName().endsWith(".iris"))
+                System.out.println("Omitting file " + fileEntry.getName());
             else {
 
                 Runnable transformer = new TransformerThread(fileEntry, projectFactsDir);
