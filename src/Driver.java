@@ -14,10 +14,7 @@ import org.deri.iris.compiler.ParserException;
 import org.deri.iris.optimisations.magicsets.MagicSets;
 import org.deri.iris.storage.IRelation;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.Reader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,13 +23,20 @@ import java.util.Map;
 
 public class Driver {
 
+    public static boolean isInteger(String s) {
+        try {
+            Integer.parseInt(s);
+        } catch(NumberFormatException e) {
+            return false;
+        } catch(NullPointerException e) {
+            return false;
+        }
+        return true;
+    }
+
     public static void main(String[] args) throws EvaluationException {
         if (args.length != 1) {
             System.err.println("Please give input file");
-            System.exit(-1);
-        }
-        else if (!args[0].endsWith(".spg")) {
-            System.err.println("Please give a .spg file as input");
             System.exit(-1);
         }
 
@@ -45,8 +49,61 @@ public class Driver {
         Parser parser = new Parser();
         Map<IPredicate, IRelation> factMap = new HashMap<>();
 
+        System.out.println("Scanning directory: " + projectFactsDir);
         final File factsDirectory = new File(projectFactsDir);
-        factsDirectory.mkdir();
+        if (factsDirectory.isDirectory())
+            for (final File fileEntry : factsDirectory.listFiles()) {
+            if (fileEntry.isDirectory())
+                System.out.println("Omitting directory " + fileEntry.getPath());
+
+            else {
+                try {
+                    System.out.println("Transforming file: " + fileEntry.getAbsolutePath());
+                    BufferedReader factsReader = new BufferedReader(new FileReader(fileEntry));
+                    PrintWriter writer = new PrintWriter(projectFactsDir + "/" + fileEntry.getName().replace(".facts", ".iris"), "UTF-8");
+                    String line;
+                    String predicateName = fileEntry.getName().replace(".facts", "").replace("-", ":");
+                    StringBuilder transformedArgs = new StringBuilder();
+
+                    while ((line = factsReader.readLine()) != null) {
+                        String[] predicateArgs = line.split("\t");
+
+                        for(int i = 0; i < predicateArgs.length; i++) {
+                            if (i == 0) {
+                                if (isInteger(predicateArgs[i]))
+                                    transformedArgs.append(predicateArgs[i]);
+                                else
+                                    transformedArgs.append(predicateArgs[i]);
+                            }
+                            else {
+                                if (isInteger(predicateArgs[i]))
+                                    transformedArgs.append("," + predicateArgs[i]);
+                                else
+                                    transformedArgs.append(",\'" + predicateArgs[i] + "\'");
+                            }
+
+                        }
+                        writer.println(predicateName + "(" + transformedArgs.toString() + ").");
+                    }
+                    writer.close();
+                    factsReader.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                // Retrieve the facts and put all of them in factMap
+                //factMap.putAll(parser.getFacts());
+            }
+        }
+        else {
+            System.err.println("Invalid facts directory path: " + projectFactsDir);
+            System.exit(-1);
+        }
+
         if (factsDirectory.isDirectory()) for (final File fileEntry : factsDirectory.listFiles()) {
             if (fileEntry.isDirectory())
                 System.out.println("Omitting directory " + fileEntry.getPath());
@@ -73,7 +130,7 @@ public class Driver {
             System.exit(-1);
         }
 
-        File copyPropagationRuleFile = new File(rootAnalysisLogicDir + "copy-propagation.iris");
+        File copyPropagationRuleFile = new File(rootAnalysisLogicDir + "micro-doop.iris");
         Reader rulesReader;
         try {
             rulesReader = new FileReader(copyPropagationRuleFile);
