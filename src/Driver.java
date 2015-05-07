@@ -1,6 +1,7 @@
 /**
  * Created by anantoni on 1/5/2015.
  */
+
 import org.deri.iris.Configuration;
 import org.deri.iris.EvaluationException;
 import org.deri.iris.KnowledgeBase;
@@ -14,14 +15,20 @@ import org.deri.iris.compiler.ParserException;
 import org.deri.iris.optimisations.magicsets.MagicSets;
 import org.deri.iris.storage.IRelation;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class Driver {
+    private static final int MYTHREADS = 30;
 
     public static boolean isInteger(String s) {
         try {
@@ -40,6 +47,8 @@ public class Driver {
             System.exit(-1);
         }
 
+        ExecutorService executor = Executors.newFixedThreadPool(MYTHREADS);
+
         File factsSubDir = new File(args[0]);
         String rootFactsDir = "../generated-facts/";
         String rootAnalysisLogicDir = "../analysis-logic/";
@@ -57,43 +66,46 @@ public class Driver {
                 System.out.println("Omitting directory " + fileEntry.getPath());
 
             else {
-                try {
-                    System.out.println("Transforming file: " + fileEntry.getAbsolutePath());
-                    BufferedReader factsReader = new BufferedReader(new FileReader(fileEntry));
-                    PrintWriter writer = new PrintWriter(projectFactsDir + "/" + fileEntry.getName().replace(".facts", ".iris"), "UTF-8");
-                    String line;
-                    String predicateName = fileEntry.getName().replace(".facts", "").replace("-", ":");
-                    StringBuilder transformedArgs = new StringBuilder();
 
-                    while ((line = factsReader.readLine()) != null) {
-                        String[] predicateArgs = line.split("\t");
-
-                        for(int i = 0; i < predicateArgs.length; i++) {
-                            if (i == 0) {
-                                if (isInteger(predicateArgs[i]))
-                                    transformedArgs.append(predicateArgs[i]);
-                                else
-                                    transformedArgs.append(predicateArgs[i]);
-                            }
-                            else {
-                                if (isInteger(predicateArgs[i]))
-                                    transformedArgs.append("," + predicateArgs[i]);
-                                else
-                                    transformedArgs.append(",\'" + predicateArgs[i] + "\'");
-                            }
-
-                        }
-                        writer.println(predicateName + "(" + transformedArgs.toString() + ").");
-                    }
-                    writer.close();
-                    factsReader.close();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                Runnable transformer = new TransformerThread(fileEntry, projectFactsDir);
+                executor.execute(transformer);
+//                try {
+//                    System.out.println("Transforming file: " + fileEntry.getAbsolutePath());
+//                    BufferedReader factsReader = new BufferedReader(new FileReader(fileEntry));
+//                    PrintWriter writer = new PrintWriter(projectFactsDir + "/" + fileEntry.getName().replace(".facts", ".iris"), "UTF-8");
+//                    String line;
+//                    String predicateName = fileEntry.getName().replace(".facts", "").replace("-", ":");
+//                    StringBuilder transformedArgs = new StringBuilder();
+//
+//                    while ((line = factsReader.readLine()) != null) {
+//                        String[] predicateArgs = line.split("\t");
+//
+//                        for(int i = 0; i < predicateArgs.length; i++) {
+//                            if (i == 0) {
+//                                if (isInteger(predicateArgs[i]))
+//                                    transformedArgs.append(predicateArgs[i]);
+//                                else
+//                                    transformedArgs.append(predicateArgs[i]);
+//                            }
+//                            else {
+//                                if (isInteger(predicateArgs[i]))
+//                                    transformedArgs.append("," + predicateArgs[i]);
+//                                else
+//                                    transformedArgs.append(",\'" + predicateArgs[i] + "\'");
+//                            }
+//
+//                        }
+//                        writer.println(predicateName + "(" + transformedArgs.toString() + ").");
+//                    }
+//                    writer.close();
+//                    factsReader.close();
+//                } catch (FileNotFoundException e) {
+//                    e.printStackTrace();
+//                } catch (UnsupportedEncodingException e) {
+//                    e.printStackTrace();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
 
                 // Retrieve the facts and put all of them in factMap
                 //factMap.putAll(parser.getFacts());
@@ -103,11 +115,16 @@ public class Driver {
             System.err.println("Invalid facts directory path: " + projectFactsDir);
             System.exit(-1);
         }
+        executor.shutdown();
+        while(!executor.isTerminated()) {}
+
+        System.out.println("\nFinished all threads");
 
         if (factsDirectory.isDirectory()) for (final File fileEntry : factsDirectory.listFiles()) {
             if (fileEntry.isDirectory())
                 System.out.println("Omitting directory " + fileEntry.getPath());
-
+            else if (fileEntry.getName().endsWith(".facts"))
+                System.out.println("Omitting file " + fileEntry.getName());
             else {
                 Reader factsReader;
                 try {
