@@ -50,9 +50,9 @@ public class Driver {
         ExecutorService executor = Executors.newFixedThreadPool(MYTHREADS);
 
         File factsSubDir = new File(args[0]);
-        String rootFactsDir = "../generated-facts/";
-        String rootAnalysisLogicDir = "../analysis-logic/";
-        String rootQueriesDir = "../queries/";
+        String rootFactsDir = "generated-facts/";
+        String rootAnalysisLogicDir = "analysis-logic/";
+        String rootQueriesDir = "queries/";
         String projectFactsDir = rootFactsDir + factsSubDir;
 
         Parser parser = new Parser();
