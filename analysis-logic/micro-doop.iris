@@ -1,5 +1,5 @@
 /**
- * Generic context-insensitive pointer analysis
+ * Generic context:-insensitive pointer analysis
  *
  * @author Martin Bravenboer
  * @author Yannis Smaragdakis
@@ -10,77 +10,77 @@
  * Heap allocation
  */
 
-VarPointsTo(?heap, ?var) <-
+VarPointsTo(?heap, ?var) :-
   AssignNormalHeapAllocation(?heap, ?var, ?inmethod),
   Reachable(?inmethod).
 
-VarPointsTo(?heap, ?var) <-
+VarPointsTo(?heap, ?var) :-
   AssignAuxiliaryHeapAllocation(?heap, ?var, ?inmethod),
   Reachable(?inmethod).
 
-VarPointsTo(?heap, ?var) <-
+VarPointsTo(?heap, ?var) :-
   AssignContextInsensitiveHeapAllocation(?heap, ?var, ?inmethod),
   Reachable(?inmethod).
 
 /**
 *  Variable points to heap object
 */
-VarPointsTo( ?heap, ?to ) <-
+VarPointsTo( ?heap, ?to ) :-
   	VarPointsTo( ?heap, ?from ),
   	Assign( ?type, ?from, ?to ),
-	HeapAllocation:Type(?heap, ?heaptype),
+	HeapAllocationType(?heap, ?heaptype),
 	AssignCompatible(?type, ?heaptype).
 /**
 *  Local Assignments 
 */
-Assign(?type, ?from, ?to ) <- 
+Assign(?type, ?from, ?to ) :- 
         Reachable( ?inmethod ),
 	AssignLocal( ?from, ?to, ?inmethod ),
-        Var:Type(?to, ?type).
+        VarType(?to, ?type).
 
 /**
  * Cast assignments
  */
-Assign( ?type, ?from, ?to ) <-
+Assign( ?type, ?from, ?to ) :-
         Reachable(?inmethod),
         AssignCast(?type, ?from, ?to, ?inmethod).
 
 /**
  * Invocation assignments 
  */
-Assign( ?type,  ?actual, ?formal ) <-
+Assign( ?type,  ?actual, ?formal ) :-
 	FormalParam(?index, ?method, ?formal),
 	ActualParam(?index, ?invocation, ?actual),
-	Var:Type(?formal, ?type),
+	VarType(?formal, ?type),
         CallGraphEdge( ?invocation, ?method ).
 
-Assign( ?type, ?return, ?local ) <-
+Assign( ?type, ?return, ?local ) :-
 	ReturnVar( ?return, ?method ),
 	CallGraphEdge( ?invocation, ?method ),
-    	Var:Type(?local, ?type),
+    VarType(?local, ?type),
 	AssignReturnValue(?invocation, ?local). 
 
 /**
  * Arrays
  *
  */
-ArrayIndexPointsTo( ?baseheap, ?heap ) <-
+ArrayIndexPointsTo( ?baseheap, ?heap ) :-
   Reachable( ?inmethod ),
   StoreArrayIndex(?from, ?base, ?inmethod),
   VarPointsTo( ?baseheap, ?base ),
   VarPointsTo( ?heap, ?from),
-  HeapAllocation:Type(?heap, ?heaptype),
-  HeapAllocation:Type(?baseheap, ?baseheaptype),
+  HeapAllocationType(?heap, ?heaptype),
+  HeapAllocationType(?baseheap, ?baseheaptype),
   ComponentType(?baseheaptype, ?componenttype),
   AssignCompatible(?componenttype, ?heaptype).
 
-VarPointsTo( ?heap, ?to ) <-
+VarPointsTo( ?heap, ?to ) :-
   Reachable( ?inmethod ),
   LoadArrayIndex( ?base, ?to, ?inmethod ),
   VarPointsTo( ?baseheap, ?base ),
   ArrayIndexPointsTo( ?baseheap, ?heap ),
-  Var:Type(?to, ?type),
-  HeapAllocation:Type(?baseheap, ?baseheaptype),
+  VarType(?to, ?type),
+  HeapAllocationType(?baseheap, ?baseheaptype),
   ComponentType(?baseheaptype, ?basecomponenttype),
   AssignCompatible(?type, ?basecomponenttype).
 
@@ -89,7 +89,7 @@ VarPointsTo( ?heap, ?to ) <-
  * Load instance fields
  *
  */
-VarPointsTo( ?heap, ?to) <-
+VarPointsTo( ?heap, ?to) :-
   Reachable(?inmethod),
   LoadInstanceField(?base, ?signature, ?to, ?inmethod ),
   VarPointsTo( ?baseheap, ?base ),
@@ -98,7 +98,7 @@ VarPointsTo( ?heap, ?to) <-
 /**
  * Store instance fields
  */
-InstanceFieldPointsTo( ?heap, ?signature,  ?baseheap) <-
+InstanceFieldPointsTo( ?heap, ?signature,  ?baseheap) :-
   Reachable(?inmethod),
   StoreInstanceField(?from, ?base, ?signature, ?inmethod),
   VarPointsTo( ?heap,  ?from),
@@ -107,7 +107,7 @@ InstanceFieldPointsTo( ?heap, ?signature,  ?baseheap) <-
 /**
  * Load static fields
  */
-VarPointsTo( ?heap, ?to ) <-
+VarPointsTo( ?heap, ?to ) :-
   	Reachable( ?inmethod ),
   	LoadStaticField( ?signature, ?to, ?inmethod ),
   	StaticFieldPointsTo( ?heap, ?signature ).
@@ -115,54 +115,54 @@ VarPointsTo( ?heap, ?to ) <-
 /**
  * Store static fields
  */
-StaticFieldPointsTo( ?heap, ?signature ) <-
+StaticFieldPointsTo( ?heap, ?signature ) :-
   	Reachable( ?inmethod ),
   	StoreStaticField( ?from, ?signature, ?inmethod),
   	VarPointsTo( ?heap, ?from).
 
 /**
-*  On-the-fly call graph creation
+*  On:-the:-fly call graph creation
 */
 Reachable( ?tomethod ), 
-CallGraphEdge(?invocation, ?tomethod) <-
+CallGraphEdge(?invocation, ?tomethod) :-
 	Reachable( ?inmethod ),
 	StaticMethodInvocation( ?invocation, ?signature, ?inmethod ),
 	MethodDeclaration(?signature, ?tomethod).
 
 Reachable( ?tomethod ), 
 CallGraphEdge( ?invocation, ?tomethod ),
-VarPointsTo( ?heap, ?this ) <-
+VarPointsTo( ?heap, ?this ) :-
 	Reachable( ?inmethod ),
 	VirtualMethodInvocation( ?invocation, ?signature, ?inmethod ),
-	VirtualMethodInvocation:Base(?invocation, ?base),
+	VirtualMethodInvocationBase(?invocation, ?base),
     	VarPointsTo( ?heap, ?base ),
-	HeapAllocation:Type(?heap, ?type),
-    	MethodSignature:SimpleName(?signature, ?simplename),
-    	MethodSignature:Descriptor(?signature, ?descriptor),
+	HeapAllocationType(?heap, ?type),
+    	MethodSignatureSimpleName(?signature, ?simplename),
+    	MethodSignatureDescriptor(?signature, ?descriptor),
         ThisVar(?tomethod, ?this),
 	MethodLookup(?simplename, ?descriptor, ?type, ?tomethod).
 
 Reachable( ?tomethod ), 
 CallGraphEdge( ?invocation, ?tomethod ),
-VarPointsTo( ?heap, ?this ) <-
+VarPointsTo( ?heap, ?this ) :-
 	Reachable( ?inmethod ),
-	SpecialMethodInvocation:In(?invocation, ?inmethod),
-	SpecialMethodInvocation:Base(?invocation, ?base),
+	SpecialMethodInvocationIn(?invocation, ?inmethod),
+	SpecialMethodInvocationBase(?invocation, ?base),
 	VarPointsTo( ?heap, ?base ),
-	SpecialMethodInvocation:Signature(?invocation, ?signature),
+	SpecialMethodInvocationSignature(?invocation, ?signature),
         ThisVar(?tomethod, ?this),
     	MethodDeclaration(?signature, ?tomethod).
 
 /**
  * Reachable methods. Main method, for sure.
  */
-Reachable( ?method ) <-
+Reachable( ?method ) :-
     MainMethodDeclaration( ?method ).
 
 /**
  * Implicitly reachable methods are invoked by the JVM on startup.
  */
-Reachable( ?method ) <-
+Reachable( ?method ) :-
     ImplicitReachable( ?method ).
 
 /**
@@ -173,6 +173,6 @@ Reachable( ?method ) <-
  * needs to be initialized as well, so we don't need to invoke class
  * initializers of the super class here.
  */
-Reachable( ?clinit ) <-
+Reachable( ?clinit ) :-
     InitializedClass(?class), 
     ClassInitializer(?class, ?clinit).

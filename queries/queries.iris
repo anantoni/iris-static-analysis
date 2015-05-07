@@ -1,0 +1,1 @@
+?- VarPointsTo(?var, ?to).
