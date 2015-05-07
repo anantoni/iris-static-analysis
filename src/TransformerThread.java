@@ -68,7 +68,7 @@ public class TransformerThread implements Runnable {
                     predicateArgs = line.split("\t");
                 else
                     predicateArgs = line.split(", ");
-                if (predicateArgs.length > groups || predicateArgs.length < groups && groups > 0)
+                if ((predicateArgs.length > groups || predicateArgs.length < groups) && groups > 0)
                     continue;
                 else if (groups == 0)
                     groups = predicateArgs.length;
@@ -79,13 +79,13 @@ public class TransformerThread implements Runnable {
                         if (isInteger(predicateArgs[i]))
                             transformedArgs.append(predicateArgs[i]);
                         else
-                            transformedArgs.append("\"" + predicateArgs[i] + "\"");
+                            transformedArgs.append("\'" + predicateArgs[i] + "\'");
                     }
                     else {
                         if (isInteger(predicateArgs[i]))
                             transformedArgs.append("," + predicateArgs[i]);
                         else
-                            transformedArgs.append(",\"" + predicateArgs[i] + "\"");
+                            transformedArgs.append(",\'" + predicateArgs[i] + "\'");
                     }
 
                 }
