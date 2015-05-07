@@ -58,30 +58,29 @@ public class Driver {
         Parser parser = new Parser();
         Map<IPredicate, IRelation> factMap = new HashMap<>();
 
-        System.out.println("Scanning directory: " + projectFactsDir);
         final File factsDirectory = new File(projectFactsDir);
-        if (factsDirectory.isDirectory()) {
-            File[] files = factsDirectory.listFiles();
-            for (final File fileEntry : files) {
-                if (fileEntry.isDirectory())
-                    System.out.println("Omitting directory " + fileEntry.getPath());
-
-                else if (fileEntry.getName().endsWith(".iris"))
-                    System.out.println("Omitting file " + fileEntry.getName());
-                else {
-                    Runnable transformer = new TransformerThread(fileEntry, projectFactsDir);
-                    executor.execute(transformer);
-                }
-            }
-        }
-        else {
-            System.err.println("Invalid facts directory path: " + projectFactsDir);
-            System.exit(-1);
-        }
-        executor.shutdown();
-        while(!executor.isTerminated()) {}
-
-        System.out.println("\nFinished all threads");
+//        if (factsDirectory.isDirectory()) {
+//            File[] files = factsDirectory.listFiles();
+//            for (final File fileEntry : files) {
+//                if (fileEntry.isDirectory())
+//                    System.out.println("Omitting directory " + fileEntry.getPath());
+//
+//                else if (fileEntry.getName().endsWith(".iris"))
+//                    System.out.println("Omitting file " + fileEntry.getName());
+//                else {
+//                    Runnable transformer = new TransformerThread(fileEntry, projectFactsDir);
+//                    executor.execute(transformer);
+//                }
+//            }
+//        }
+//        else {
+//            System.err.println("Invalid facts directory path: " + projectFactsDir);
+//            System.exit(-1);
+//        }
+//        executor.shutdown();
+//        while(!executor.isTerminated()) {}
+//
+//        System.out.println("\nFinished all threads");
 
         if (factsDirectory.isDirectory())  {
             File[] files = factsDirectory.listFiles();
