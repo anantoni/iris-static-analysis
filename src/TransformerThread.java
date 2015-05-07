@@ -64,9 +64,9 @@ public class TransformerThread implements Runnable {
                 line = line.trim();
 
                 String[] predicateArgs;
-                if (libraryFiles.contains(fileEntry.getName()))
-                    predicateArgs = line.split("\t");
-                else
+//                if (libraryFiles.contains(fileEntry.getName()))
+//                    predicateArgs = line.split("\t");
+//                else
                     predicateArgs = line.split(", ");
                 if ((predicateArgs.length > groups || predicateArgs.length < groups) && groups > 0)
                     continue;
