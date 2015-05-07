@@ -60,17 +60,18 @@ public class Driver {
 
         System.out.println("Scanning directory: " + projectFactsDir);
         final File factsDirectory = new File(projectFactsDir);
-        if (factsDirectory.isDirectory())
-            for (final File fileEntry : factsDirectory.listFiles()) {
-            if (fileEntry.isDirectory())
-                System.out.println("Omitting directory " + fileEntry.getPath());
+        if (factsDirectory.isDirectory()) {
+            File[] files = factsDirectory.listFiles();
+            for (final File fileEntry : files) {
+                if (fileEntry.isDirectory())
+                    System.out.println("Omitting directory " + fileEntry.getPath());
 
-            else if (fileEntry.getName().endsWith(".iris"))
-                System.out.println("Omitting file " + fileEntry.getName());
-            else {
-
-                Runnable transformer = new TransformerThread(fileEntry, projectFactsDir);
-                executor.execute(transformer);
+                else if (fileEntry.getName().endsWith(".iris"))
+                    System.out.println("Omitting file " + fileEntry.getName());
+                else {
+                    Runnable transformer = new TransformerThread(fileEntry, projectFactsDir);
+                    executor.execute(transformer);
+                }
             }
         }
         else {
@@ -82,26 +83,29 @@ public class Driver {
 
         System.out.println("\nFinished all threads");
 
-        if (factsDirectory.isDirectory()) for (final File fileEntry : factsDirectory.listFiles()) {
-            if (fileEntry.isDirectory())
-                System.out.println("Omitting directory " + fileEntry.getPath());
-            else if (fileEntry.getName().endsWith(".facts"))
-                System.out.println("Omitting file " + fileEntry.getName());
-            else {
-                Reader factsReader;
-                try {
-                    factsReader = new FileReader(fileEntry);
-                    parser.parse(factsReader);
-                } catch (ParserException e) {
-                    System.err.println("Parse exception in file: " + fileEntry.getName());
-                    e.printStackTrace();
-                    System.exit(-1);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
+        if (factsDirectory.isDirectory())  {
+            File[] files = factsDirectory.listFiles();
+            for (final File fileEntry : files) {
+                if (fileEntry.isDirectory())
+                    System.out.println("Omitting directory " + fileEntry.getPath());
+                else if (fileEntry.getName().endsWith(".facts"))
+                    System.out.println("Omitting file " + fileEntry.getName());
+                else {
+                    Reader factsReader;
+                    try {
+                        factsReader = new FileReader(fileEntry);
+                        parser.parse(factsReader);
+                    } catch (ParserException e) {
+                        System.err.println("Parse exception in file: " + fileEntry.getName());
+                        e.printStackTrace();
+                        System.exit(-1);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
 
-                // Retrieve the facts and put all of them in factMap
-                factMap.putAll(parser.getFacts());
+                    // Retrieve the facts and put all of them in factMap
+                    factMap.putAll(parser.getFacts());
+                }
             }
         }
         else {
