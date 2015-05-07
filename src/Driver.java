@@ -71,46 +71,6 @@ public class Driver {
 
                 Runnable transformer = new TransformerThread(fileEntry, projectFactsDir);
                 executor.execute(transformer);
-//                try {
-//                    System.out.println("Transforming file: " + fileEntry.getAbsolutePath());
-//                    BufferedReader factsReader = new BufferedReader(new FileReader(fileEntry));
-//                    PrintWriter writer = new PrintWriter(projectFactsDir + "/" + fileEntry.getName().replace(".facts", ".iris"), "UTF-8");
-//                    String line;
-//                    String predicateName = fileEntry.getName().replace(".facts", "").replace("-", ":");
-//                    StringBuilder transformedArgs = new StringBuilder();
-//
-//                    while ((line = factsReader.readLine()) != null) {
-//                        String[] predicateArgs = line.split("\t");
-//
-//                        for(int i = 0; i < predicateArgs.length; i++) {
-//                            if (i == 0) {
-//                                if (isInteger(predicateArgs[i]))
-//                                    transformedArgs.append(predicateArgs[i]);
-//                                else
-//                                    transformedArgs.append(predicateArgs[i]);
-//                            }
-//                            else {
-//                                if (isInteger(predicateArgs[i]))
-//                                    transformedArgs.append("," + predicateArgs[i]);
-//                                else
-//                                    transformedArgs.append(",\'" + predicateArgs[i] + "\'");
-//                            }
-//
-//                        }
-//                        writer.println(predicateName + "(" + transformedArgs.toString() + ").");
-//                    }
-//                    writer.close();
-//                    factsReader.close();
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                } catch (UnsupportedEncodingException e) {
-//                    e.printStackTrace();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-
-                // Retrieve the facts and put all of them in factMap
-                //factMap.putAll(parser.getFacts());
             }
         }
         else {
