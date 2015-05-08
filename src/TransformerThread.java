@@ -62,12 +62,10 @@ public class TransformerThread implements Runnable {
             int groups = 0;
             while ((line = factsReader.readLine()) != null) {
                 line = line.trim();
+                if (line.contains("\\"))
+                    continue;
 
-                String[] predicateArgs;
-//                if (libraryFiles.contains(fileEntry.getName()))
-//                    predicateArgs = line.split("\t");
-//                else
-                    predicateArgs = line.split(", ");
+                String[] predicateArgs = line.split(", ");
                 if ((predicateArgs.length > groups || predicateArgs.length < groups) && groups > 0)
                     continue;
                 else if (groups == 0)
@@ -77,15 +75,15 @@ public class TransformerThread implements Runnable {
                 for(int i = 0; i < predicateArgs.length; i++) {
                     if (i == 0) {
                         if (isInteger(predicateArgs[i]))
-                            transformedArgs.append(predicateArgs[i]);
+                            transformedArgs.append(predicateArgs[i].replace("+", "").replace("-", ""));
                         else
-                            transformedArgs.append("\'" + predicateArgs[i] + "\'");
+                            transformedArgs.append("\'" + predicateArgs[i].replace("\'", "\\\'").replace("\"", "\\\"") + "\'");
                     }
                     else {
                         if (isInteger(predicateArgs[i]))
-                            transformedArgs.append("," + predicateArgs[i]);
+                            transformedArgs.append("," + predicateArgs[i].replace("+", "").replace("-", ""));
                         else
-                            transformedArgs.append(",\'" + predicateArgs[i] + "\'");
+                            transformedArgs.append(",\'" + predicateArgs[i].replace("\'", "\\\'").replace("\"", "\\\"") + "\'");
                     }
 
                 }

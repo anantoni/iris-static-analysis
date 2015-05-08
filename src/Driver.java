@@ -59,28 +59,28 @@ public class Driver {
         Map<IPredicate, IRelation> factMap = new HashMap<>();
 
         final File factsDirectory = new File(projectFactsDir);
-//        if (factsDirectory.isDirectory()) {
-//            File[] files = factsDirectory.listFiles();
-//            for (final File fileEntry : files) {
-//                if (fileEntry.isDirectory())
-//                    System.out.println("Omitting directory " + fileEntry.getPath());
-//
-//                else if (fileEntry.getName().endsWith(".iris"))
-//                    System.out.println("Omitting file " + fileEntry.getName());
-//                else {
-//                    Runnable transformer = new TransformerThread(fileEntry, projectFactsDir);
-//                    executor.execute(transformer);
-//                }
-//            }
-//        }
-//        else {
-//            System.err.println("Invalid facts directory path: " + projectFactsDir);
-//            System.exit(-1);
-//        }
-//        executor.shutdown();
-//        while(!executor.isTerminated()) {}
-//
-//        System.out.println("\nFinished all threads");
+        if (factsDirectory.isDirectory()) {
+            File[] files = factsDirectory.listFiles();
+            for (final File fileEntry : files) {
+                if (fileEntry.isDirectory())
+                    System.out.println("Omitting directory " + fileEntry.getPath());
+
+                else if (fileEntry.getName().endsWith(".iris"))
+                    System.out.println("Omitting file " + fileEntry.getName());
+                else {
+                    Runnable transformer = new TransformerThread(fileEntry, projectFactsDir);
+                    executor.execute(transformer);
+                }
+            }
+        }
+        else {
+            System.err.println("Invalid facts directory path: " + projectFactsDir);
+            System.exit(-1);
+        }
+        executor.shutdown();
+        while(!executor.isTerminated()) {}
+
+        System.out.println("\nFinished all threads");
 
         if (factsDirectory.isDirectory())  {
             File[] files = factsDirectory.listFiles();
@@ -112,6 +112,7 @@ public class Driver {
             System.exit(-1);
         }
 
+
         File copyPropagationRuleFile = new File(rootAnalysisLogicDir + "micro-doop.iris");
         Reader rulesReader;
         try {
@@ -122,8 +123,16 @@ public class Driver {
         } catch (ParserException e) {
             e.printStackTrace();
         }
+        System.out.println("Starting analysis");
+        long startTime = System.nanoTime();
+
         List<IRule> rules = parser.getRules();
 
+        long endTime = System.nanoTime();
+        long elapsedTime = endTime - startTime;
+        System.out.println( "Analysis time: " + (elapsedTime/(double)1000000000));
+
+        System.out.println("Querying analysis results");
         File queriesFile = new File(rootQueriesDir + "queries.iris");
         Reader queriesReader;
         try {
@@ -159,9 +168,10 @@ public class Driver {
             // Output each tuple in the relation, where the term at position i
             // corresponds to the variable at position i in the variable
             // bindings list.
-            for (int i = 0; i < relation.size(); i++) {
-                System.out.println(relation.get(i));
-            }
+//            for (int i = 0; i < relation.size(); i++) {
+//                System.out.println(relation.get(i));
+//            }
+            System.out.println("VarPointsTo relation size: " + relation.size());
         }
 
     }
