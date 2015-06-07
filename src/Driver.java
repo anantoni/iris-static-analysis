@@ -123,16 +123,9 @@ public class Driver {
         } catch (ParserException e) {
             e.printStackTrace();
         }
-        System.out.println("Starting analysis");
-        long startTime = System.nanoTime();
-
         List<IRule> rules = parser.getRules();
 
-        long endTime = System.nanoTime();
-        long elapsedTime = endTime - startTime;
-        System.out.println( "Analysis time: " + (elapsedTime/(double)1000000000));
-
-        System.out.println("Querying analysis results");
+        
         File queriesFile = new File(rootQueriesDir + "queries.iris");
         Reader queriesReader;
         try {
@@ -154,9 +147,16 @@ public class Driver {
         for (IRule rule : rules)
             configuration.ruleSafetyProcessor.process(rule);
 
-        // Create the knowledge base.
-        IKnowledgeBase knowledgeBase = new KnowledgeBase(factMap, rules, configuration);
+        // Create the knowledge base.System.out.println("Starting analysis");
+        long startTime = System.nanoTime();
 
+        
+        IKnowledgeBase knowledgeBase = new KnowledgeBase(factMap, rules, configuration);
+        long endTime = System.nanoTime();
+        long elapsedTime = endTime - startTime;
+        System.out.println( "Knowledge Base creation time: " + (elapsedTime/(double)1000000000));
+
+        startTime = System.nanoTime();
         // Evaluate all queries over the knowledge base.
         for (IQuery query : queries) {
             List<IVariable> variableBindings = new ArrayList<>();
@@ -173,6 +173,8 @@ public class Driver {
 //            }
             System.out.println("VarPointsTo relation size: " + relation.size());
         }
+        endTime = System.nanoTime();
+        System.out.println( "Querying time: " + (elapsedTime/(double)1000000000));
 
     }
 }
